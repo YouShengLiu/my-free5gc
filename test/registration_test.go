@@ -41,7 +41,7 @@ import (
 )
 
 const ranN2Ipv4Addr string = "127.0.0.1"
-const amfN2Ipv4Addr string = "127.0.0.1"
+const amfN2Ipv4Addr string = "127.0.0.18"
 const ranN3Ipv4Addr string = "10.200.200.1"
 const upfN3Ipv4Addr string = "10.200.200.102"
 
