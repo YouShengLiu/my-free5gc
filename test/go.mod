@@ -11,21 +11,23 @@ require (
 	github.com/free5gc/aper v1.0.5-0.20230614030933-c73735898582
 	github.com/free5gc/ausf v0.0.0
 	github.com/free5gc/n3iwf v0.0.0
-	github.com/free5gc/nas v1.1.1
+	github.com/free5gc/nas v1.1.2-0.20230731044306-324a5cc4c35e
 	github.com/free5gc/ngap v1.0.7-0.20230614061954-9c128114ab1f
 	github.com/free5gc/nrf v0.0.0
 	github.com/free5gc/nssf v0.0.0
-	github.com/free5gc/openapi v1.0.6
+	github.com/free5gc/openapi v1.0.7-0.20230802173229-2b3ded4db293
 	github.com/free5gc/pcf v0.0.0
 	github.com/free5gc/smf v0.0.0
 	github.com/free5gc/udm v0.0.0
 	github.com/free5gc/udr v0.0.0
-	github.com/free5gc/util v1.0.5-0.20230511064842-2e120956883b
+	github.com/free5gc/util v1.0.5-0.20230823103219-e511c4fd20ef
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-ping/ping v0.0.0-20210506233800-ff8be3320020
 	github.com/google/uuid v1.3.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.1
+	github.com/tim-ywliu/nested-logrus-formatter v1.3.2
 	github.com/urfave/cli v1.22.5
 	github.com/vishvananda/netlink v1.1.0
 	go.mongodb.org/mongo-driver v1.8.4
@@ -70,8 +72,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/tim-ywliu/nested-logrus-formatter v1.3.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.9 // indirect
 	github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74 // indirect

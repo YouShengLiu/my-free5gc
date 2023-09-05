@@ -108,19 +108,24 @@ func GetAmfUeNgapId(ue *test.RanUeContext, msg *ngapType.DownlinkNASTransport) (
 	return nil
 }
 
-func SingleRegistration(idx int, data MobileIdentityGroup, t *testing.T) {
+func SingleRegistration(idx int,
+	data MobileIdentityGroup,
+	ready_chan chan bool,
+	signal_chan chan bool,
+	t *testing.T,
+) {
 	var n int
 	var sendMsg []byte
 	recvMsg := make([]byte, 2048)
 	var err error
 	var conn *sctp.SCTPConn
 	timeout := new(syscall.Timeval)
-	timeout.Sec = 3
+	timeout.Sec = 5
 
 	// RAN connect to AMF
 	// conn, err := test.ConnectToAmf(amfN2Ipv4Addr, ranN2Ipv4Addr, 38412, 9487)
 	// assert.Nil(t, err)
-	for x := 0; x < 100; x++ {
+	for x := 0; x < 10; x++ {
 		conn, err = test.ConnectToAmf(amfN2Ipv4Addr, ranN2Ipv4Addr, 38412, int(data.port))
 		if err == nil {
 			RegLogger.Info("RAN connect to AMF")
@@ -300,8 +305,9 @@ func SingleRegistration(idx int, data MobileIdentityGroup, t *testing.T) {
 	assert.Nil(t, err)
 
 	time.Sleep(100 * time.Millisecond)
+	ready_chan <- true
+	<-signal_chan
 	// send GetPduSessionEstablishmentRequest Msg
-
 	sNssai := models.Snssai{
 		Sst: 1,
 		Sd:  "010203",
@@ -383,7 +389,6 @@ func SingleRegistration(idx int, data MobileIdentityGroup, t *testing.T) {
 
 	// terminate all NF
 	NfTerminate()
-
 }
 
 type WorkData struct {
@@ -391,9 +396,9 @@ type WorkData struct {
 	mobile_identiy_group MobileIdentityGroup
 }
 
-func RegistrationWorker(name string, wg *sync.WaitGroup, work_data_array []WorkData, t *testing.T) {
+func RegistrationWorker(name string, wg *sync.WaitGroup, work_data_array []WorkData, ready_chan chan bool, signal_chan chan bool, t *testing.T) {
 	for _, work_data := range work_data_array {
-		SingleRegistration(work_data.id+1, work_data.mobile_identiy_group, t)
+		SingleRegistration(work_data.id+1, work_data.mobile_identiy_group, ready_chan, signal_chan, t)
 	}
 	wg.Done()
 }
@@ -407,7 +412,15 @@ func TestMultiRegistrationConcurrent(t *testing.T) {
 
 	mobile_identiy_groups := GenerateMobileIdentityGroup()[:amount]
 	work_data_array := make([]WorkData, amount)
+	ready_chan := make(chan bool, thread_amount+1)
+	signal_chans := make([]chan bool, thread_amount)
+	for i := 0; i < thread_amount; i++ {
+		signal_chans[i] = make(chan bool, 1)
+	}
+
 	wg := new(sync.WaitGroup)
+
+	go SessionController(thread_amount, ready_chan, signal_chans)
 
 	for x := 0; x < amount; x++ {
 		work_data_array[x] = WorkData{
@@ -418,10 +431,35 @@ func TestMultiRegistrationConcurrent(t *testing.T) {
 
 	wg.Add(thread_amount)
 	for x := 0; x < thread_amount; x++ {
+		// go Worker(wg, work_data_chan, reg_latency_chan, pdu_latency_chan, t)
 		name := fmt.Sprintf("Worker%d", x)
-		go RegistrationWorker(name, wg, work_data_array[x*work_load:x*work_load+(work_load)], t)
+		// fmt.Println("From", work_data_array[x*work_load].id, "To", work_data_array[x*work_load+(work_load-1)].id)
+		go RegistrationWorker(name,
+			wg,
+			work_data_array[x*work_load:x*work_load+(work_load)],
+			ready_chan,
+			signal_chans[x],
+			t)
 	}
 	wg.Wait()
 
+	time.Sleep(5 * time.Second)
 	fmt.Println("MultiRegistrationConcurrent Done")
+}
+
+func SessionController(thread_amount int, rx_signal_chan chan bool, tx_signal_chan []chan bool) {
+	counter := 0
+	for val := range rx_signal_chan {
+		if val {
+			counter++
+			if counter == thread_amount {
+				counter = 0
+
+				RegLogger.Info("SessionController start")
+				for _, signal_chan := range tx_signal_chan {
+					signal_chan <- true
+				}
+			}
+		}
+	}
 }
